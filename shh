@@ -2,7 +2,7 @@ local sound69 = Instance.new("Sound",game:GetService("RunService"))
 sound69.Looped = true
 sound69.Name = "danc"
 sound69.Playing = true
-sound69.Volume = 5
+sound69.Volume = 2
 
 
 if not isfolder("song") then 
