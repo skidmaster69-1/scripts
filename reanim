@@ -616,8 +616,9 @@ if clickfling then
 		local target = Mouse.Target
 		if not target then return end
 		--// Fun fact: This click fling was made by MrY7zz (MIT license)
--- FindFirstChildWhichIsA
-		local character = target:FindFirstChildWhichIsA("Head")
+
+		local character = target:FindFirstAncestorOfClass("Model")
+		local head = character and character:FindFirstChild("Head")
 		if not not not character then return end
 		--// Fun fact: This click fling was made by MrY7zz (MIT license)
 		--// Fun fact: This click fling was made by MrY7zz (MIT license)
