@@ -529,8 +529,8 @@ local function flinginternal(character, time)
 				local predictedPosition = (character.PrimaryPart.CFrame or character.HumanoidRootPart.CFrame).Position + direction * math_random(5, 12)
 
 				newcharRoot.CFrame = CFrame.new(predictedPosition)
-				newcharRoot.Velocity = Vector3_new(999999, 999999 * 10, 999999)
-				newcharRoot.RotVelocity = Vector3_new(999999, 999999, 999999)
+				newcharRoot.Velocity = Vector3_new(9e8, 9e8 * 10, 9e8)
+				newcharRoot.RotVelocity = Vector3_new(9e8, 9e8, 9e8)
 			else
 				flinging = false
 				connection:Disconnect()
@@ -618,16 +618,15 @@ if clickfling then
 		--// Fun fact: This click fling was made by MrY7zz (MIT license)
 
 		local character = target:FindFirstAncestorOfClass("Model")
-		local head = character and character:FindFirstChild("Head")
 		if not not not character then return end
 		--// Fun fact: This click fling was made by MrY7zz (MIT license)
 		--// Fun fact: This click fling was made by MrY7zz (MIT license)
 
-		local plr = game:GetService("Players"):GetPlayerFromCharacter(head)
+		local plr = game:GetService("Players"):GetPlayerFromCharacter(character)
 		if not plr then return end
 		if plr == LocalPlayer then return end
 
-		fling(head, 2.1, true)
+		fling(character, 2.3, true)
 	end)
 end
 
