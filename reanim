@@ -623,11 +623,11 @@ if clickfling then
 		--// Fun fact: This click fling was made by MrY7zz (MIT license)
 		--// Fun fact: This click fling was made by MrY7zz (MIT license)
 
-		local plr = game:GetService("Players"):GetPlayerFromCharacter(character)
+		local plr = game:GetService("Players"):GetPlayerFromCharacter(head)
 		if not plr then return end
 		if plr == LocalPlayer then return end
 
-		fling(head, 2.5, true)
+		fling(head, 2.1, true)
 	end)
 end
 
