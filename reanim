@@ -627,7 +627,7 @@ if clickfling then
 		if not plr then return end
 		if plr == LocalPlayer then return end
 
-		fling(character, 2.3, true)
+		fling(head, 2.5, true)
 	end)
 end
 
