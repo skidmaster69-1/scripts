@@ -1,0 +1,562 @@
+--[[
+ ______  ______   _____         _                
+|  ____||  ____| / ____|       | |               
+| |__   | |__   | (___    __ _ | | __ ___  _ __  
+|  __|  |  __|   \___ \  / _` || |/ // _ \| '_ \ 
+| |     | |____  ____) || (_| ||   <|  __/| | | |
+|_|     |______||_____/  \__,_||_|\_\\___||_| |_|
+       
+[CREDITS]:
+// Melon - Scripted everything
+// ZerX - Movement scripting (last part only, i edited it a bit)
+// Emper - Reanimation
+// Forsaken - Animations
+// @cybop_ and @tacocat3071 - Rig/Hat suggestions
+
+[FREE] Hair Rig:
+// https://www.roblox.com/catalog/104558082150911/Pursuer
+// https://www.roblox.com/catalog/62724852/Chestnut-Bun
+// https://www.roblox.com/catalog/301818464/Lins-Hair
+// https://www.roblox.com/catalog/451220849/Lavender-Updo
+// https://www.roblox.com/catalog/376526888/Straight-Blonde-Hair
+// https://www.roblox.com/catalog/4819740796/Robox
+
+[FREE] Fedora Rig:
+// https://www.roblox.com/catalog/3033910400/International-Fedora-Germany
+// https://www.roblox.com/catalog/3409612660/International-Fedora-USA
+// https://www.roblox.com/catalog/4381707497/International-Fedora-Turkey
+// https://www.roblox.com/catalog/4645404679/International-Fedora-Thailand
+// https://www.roblox.com/catalog/4391384843/International-Fedora-Russia
+// https://www.roblox.com/catalog/3662265036/International-Fedora-Indonesia
+// https://www.roblox.com/catalog/4819740796/Robox
+
+[PAID] Classic Rig:
+// https://www.roblox.com/catalog/12344545199/Extra-Left-hand-moving-Blocky-white
+// https://www.roblox.com/catalog/12344591101/Extra-Right-hand-moving-Blocky-white
+// https://www.roblox.com/catalog/13779879140/Black-Fluffy-Fur-Body
+// https://www.roblox.com/catalog/11263254795/Dummy-Head-For-Headless
+// https://www.roblox.com/catalog/11159410305/Rectangle-Head-For-Headless
+
+[PAID] Soldier Rig:
+// https://www.roblox.com/catalog/139102413583361/Metal-Arm
+// https://www.roblox.com/catalog/121830551276315/Prosthetic
+// https://www.roblox.com/catalog/99726531005445/Black-Prosthetic-Metal-Arm-RIGHT
+// https://www.roblox.com/catalog/18989526470/Black-Prosthetic-Metal-Arm-LEFT
+// https://www.roblox.com/catalog/74295684215899/Emo-Black-Armored-Vest
+
+// [PAID] Hats:
+https://www.roblox.com/catalog/98099894849025/VHS-Glitched-Dummy-Animated
+https://www.roblox.com/catalog/94622218233849/Pursuer-Die-of-Death-Sword-Waist
+https://www.roblox.com/catalog/92726717965695/Pursuer-Die-of-Death-Sword-Backpack
+
+Find the others here:
+// https://www.roblox.com/games/15541318313/Melons-Baseplate
+]]
+
+local Sounds = {
+GashingWound = {"PursuerGash.ogg", "https://github.com/MelonsStuff/FE-Scripts/raw/refs/heads/main/FESaken/Sounds/Forsaken/PusuerJason/Purs-gash.ogg"},
+Punch = {"PursuerPunch.ogg", "https://github.com/MelonsStuff/FE-Scripts/raw/refs/heads/main/FESaken/Sounds/Forsaken/PusuerJason/Purs-punch.ogg"},
+Stunned = {"PursuerStun.ogg", "https://github.com/MelonsStuff/FE-Scripts/raw/refs/heads/main/FESaken/Sounds/Forsaken/PusuerJason/Purs-stun.ogg"},
+RagingPace = {"PursuerRage.ogg", "https://github.com/MelonsStuff/FE-Scripts/raw/refs/heads/main/FESaken/Sounds/Forsaken/PusuerJason/Purs-pace.ogg"},
+PacingRage = {"PursuerChase.ogg", "https://github.com/MelonsStuff/FE-Scripts/raw/refs/heads/main/FESaken/Sounds/Forsaken/PusuerJason/Pursuer-Chase.ogg"},
+}
+local Path = "FESaken/PursuerJason/Sounds/"
+local Theme
+if not isfolder(Path) then makefolder(Path) end
+
+for i, v in pairs(Sounds) do
+local path = Path..v[1]
+if not isfile(path) then
+writefile(path, game:HttpGet(v[2]))
+end
+end
+
+if isfile(Path.."PursuerChase.ogg") then
+Theme = Instance.new("Sound")
+Theme.SoundId = getcustomasset(Path.."PursuerChase.ogg")
+Theme.Volume = 0.5
+Theme.Parent = nil
+Theme.Looped = true
+else
+return print("Not every sound was downloaded, please try again or clear FESaken folder in your exectors Workspace directory.")
+end
+
+if not isfile("FESaken/PursuerJason.rbxmx") then
+writefile("FESaken/PursuerJason.rbxmx",  game:HttpGet("https://github.com/MelonsStuff/FE-Scripts/raw/refs/heads/main/FESaken/Dependencies/PursuerJason.rbxmx"))
+end
+
+if game.CoreGui:FindFirstChild("TemporaryUI") then
+game.CoreGui:FindFirstChild("TemporaryUI"):Destroy()
+end
+
+setfpscap(144)
+
+local script = game:GetObjects(getcustomasset("FESaken/PursuerJason.rbxmx"))[1]
+local Animations = script:WaitForChild("Animations")
+local Idle, Walking, Running, Enraged = false, false, false, false
+local Debounce, Shift, CanSlash = false, false, false
+local AnimatorModule = loadstring(game:HttpGet("https://gist.githubusercontent.com/MelonsStuff/51f4829e57f3c5d5357f0be11d39d081/raw/1eb85e21d0fa325b40e53036708b3d5c2c0f9acb/JasonAnimator.lua"))()
+local UserInputService = game:GetService("UserInputService")
+local Player = game:GetService("Players").LocalPlayer
+local Character = game.Players.LocalPlayer.Character
+local Head = Character:WaitForChild("Head")
+local Torso = Character:WaitForChild("Torso")
+local RootPart = Character:WaitForChild("HumanoidRootPart")
+local Humanoid = Character:WaitForChild("Humanoid")
+Humanoid.WalkSpeed = 13
+pcall(function() Character:FindFirstChild("Animate"):Destroy() Humanoid:FindFirstChild("Animator"):Destroy() end)
+
+local function CreateWeld(Parent, Part0, Part1)
+local Weld = Instance.new("Weld")
+Weld.Parent = Parent
+Weld.Part0 = Part0
+Weld.Part1 = Part1
+end
+
+Theme.Parent = RootPart
+Theme:Play()
+
+local GUI = script.UIs:WaitForChild("TemporaryUI")
+GUI.Parent = game:GetService("CoreGui")
+local AbilityContainer = GUI:WaitForChild("AbilityContainer")
+GUI.PlayerInfo.PlayerIcon.Image = "rbxthumb://type=AvatarHeadShot&id=" .. Player.UserId .. "&w=420&h=420"
+
+local Machete = script.Weapons:WaitForChild("Machete"):Clone()
+Machete:FindFirstChild("Machete").Transparency = 0
+Machete.Parent = Character
+Machete.Transparency =  0
+Machete.CanTouch = true
+local Chainsaw = script.Weapons:WaitForChild("Chainsaw"):Clone()
+Chainsaw.Parent = Character
+Chainsaw.Transparency = 0
+local ChainsawWeld = script.Welds.Chainsaw:Clone()
+ChainsawWeld.Parent = RootPart
+ChainsawWeld.Part0 = RootPart
+ChainsawWeld.Part1 = Chainsaw
+
+local MacheteWeld = script.Welds.Machete:Clone()
+MacheteWeld.Parent = RootPart
+MacheteWeld.Part0 = RootPart
+MacheteWeld.Part1 = Machete
+
+local DummyWeld = Instance.new("Weld")
+DummyWeld.Parent = RootPart
+DummyWeld.Part0 = RootPart
+DummyWeld.Part1 = ReanimateDummy
+DummyWeld.C0 = CFrame.new(0, -15, 0)
+
+CreateWeld(Character, Machete, ReanimateMachete)
+CreateWeld(Character, Chainsaw, ReanimateChainsaw)
+
+local function PlaySound(SoundID, TimePosition)
+local Sound = Instance.new("Sound")
+Sound.SoundId = getcustomasset(Path..SoundID)
+Sound.Volume = 1
+Sound.TimePosition = TimePosition
+Sound.Parent = RootPart
+Sound.PlayOnRemove = true
+Sound:Destroy()
+end
+
+local Dummy = script.Extras.NPC
+for i, v in ipairs(Dummy:GetDescendants()) do
+if v:IsA("Accessory") or v:IsA("Decal") or v:IsA("BodyColors") or v:IsA("Shirt") or v:IsA("Pants") then
+v:Destroy()
+else if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
+v.Transparency = 1
+v.Color = Color3.fromRGB(170, 170, 170)
+end
+end
+end
+
+function PlayAnim(Rig, Animation, AnimFade, AnimSpeed)
+if not AnimatorModule[Rig] then
+AnimatorModule[Rig] = {}
+end
+if not AnimatorModule[Rig][Animation.Name] then
+AnimatorModule[Rig][Animation.Name] = AnimatorModule:LoadAnimation(Rig, Animation)
+end
+for Animation, Track in next, AnimatorModule[Rig] do
+if Animation ~= Animation.Name then
+Track:Stop()
+end
+end
+if not AnimatorModule[Rig][Animation.Name].IsPlaying then
+AnimatorModule[Rig][Animation.Name]:Play(AnimFade or 1, AnimSpeed or 1)
+end
+end
+
+function StopAnim(Rig, Anim)
+if not AnimatorModule[Rig] then
+AnimatorModule[Rig] = {}
+end
+if not AnimatorModule[Rig][Anim.Name] then
+AnimatorModule[Rig][Anim.Name] = AnimatorModule:LoadAnimation(Rig, Anim)
+end
+AnimatorModule[Rig][Anim.Name]:Stop()
+end
+
+function Slash()
+if Debounce then return end
+Debounce = true
+CanSlash = true
+Humanoid.WalkSpeed = 3
+PlayAnim(Character, Animations.Slash, 0.1, 1)
+PlaySound("PursuerPunch.ogg", 0)
+task.wait(0.65)
+Debounce = false
+CanSlash = false
+if Shift == true then
+Humanoid.WalkSpeed = 24
+else
+Humanoid.WalkSpeed = 13	
+end
+if RootPart.Velocity.Magnitude < 1 and workspace:FindPartOnRay(Ray.new(RootPart.Position, (CFrame.new(RootPart.Position, RootPart.Position + Vector3.new(0, -1, 0))).LookVector * 4), Character) then
+Idle = true
+Walking = false
+Running = false
+if Enraged then
+PlayAnim(Character, Animations.EnragedIdle, 0, 1)
+else
+PlayAnim(Character, Animations.Idle, 0, 1)
+end
+elseif RootPart.Velocity.Magnitude > 1 and workspace:FindPartOnRay(Ray.new(RootPart.Position, (CFrame.new(RootPart.Position, RootPart.Position + Vector3.new(0, -1, 0))).LookVector * 4), Character) then
+Idle = false
+Walking = true
+Running = false
+if Enraged then
+PlayAnim(Character, Animations.EnragedWalk, 0, 1)
+else
+PlayAnim(Character, Animations.Walk, 0, 1)
+end
+end 
+end
+
+function Behead()
+if Debounce then return end
+Debounce = true
+CanSlash = true
+Humanoid.WalkSpeed = 3
+PlayAnim(Character, Animations.Behead, 0.1, 1)
+task.wait(0.85)
+Debounce = false
+CanSlash = false
+if RootPart.Velocity.Magnitude < 1 and workspace:FindPartOnRay(Ray.new(RootPart.Position, (CFrame.new(RootPart.Position, RootPart.Position + Vector3.new(0, -1, 0))).LookVector * 4), Character) then
+Idle = true
+Walking = false
+Running = false
+if Enraged then
+PlayAnim(Character, Animations.EnragedIdle, 0, 1)
+else
+PlayAnim(Character, Animations.Idle, 0, 1)
+end
+elseif RootPart.Velocity.Magnitude > 1 and workspace:FindPartOnRay(Ray.new(RootPart.Position, (CFrame.new(RootPart.Position, RootPart.Position + Vector3.new(0, -1, 0))).LookVector * 4), Character) then
+Idle = false
+Walking = true
+Running = false
+if Enraged then
+PlayAnim(Character, Animations.EnragedWalk, 0, 1)
+else
+PlayAnim(Character, Animations.Walk, 0, 1)
+end
+end
+if Shift == true then
+Humanoid.WalkSpeed = 24
+else
+Humanoid.WalkSpeed = 13	
+end
+end
+
+local function Gash()
+if Debounce then return end
+Debounce = true
+PlaySound("PursuerGash.ogg", 1)
+Humanoid.AutoRotate = false
+local NPC = Dummy:Clone()
+NPC.Parent = workspace
+local NPCRootPart = NPC:FindFirstChild("HumanoidRootPart")
+NPCRootPart.Anchored = true
+RootPart.Anchored = true
+NPCRootPart.CFrame = CFrame.lookAt(RootPart.Position + (RootPart.CFrame.LookVector * 2.5), RootPart.Position) * CFrame.new(0, 0, -3) * CFrame.Angles(0, math.rad(180), 0)
+PlayAnim(Character, Animations.GashingWound_KillerRig, 0, 2)
+PlayAnim(NPC, Animations.GashingWound_PlayerRig, 0, 2)
+DummyWeld.Part0 = NPC:FindFirstChild("Torso")
+DummyWeld.Part1 = ReanimateDummy
+DummyWeld.C0 = CFrame.new(0, 0, 0)
+task.wait(2.65)
+NPC:Destroy()
+DummyWeld.Part0 = RootPart
+DummyWeld.Part1 = ReanimateDummy
+DummyWeld.C0 = CFrame.new(0, -15, 0)
+RootPart.Anchored = false
+Debounce = false
+Humanoid.AutoRotate = true
+if RootPart.Velocity.Magnitude < 1 and workspace:FindPartOnRay(Ray.new(RootPart.Position, (CFrame.new(RootPart.Position, RootPart.Position + Vector3.new(0, -1, 0))).LookVector * 4), Character) then
+Idle = true
+Walking = false
+Running = false
+if Enraged then
+PlayAnim(Character, Animations.EnragedIdle, 0, 1)
+else
+PlayAnim(Character, Animations.Idle, 0, 1)
+end
+elseif RootPart.Velocity.Magnitude > 1 and workspace:FindPartOnRay(Ray.new(RootPart.Position, (CFrame.new(RootPart.Position, RootPart.Position + Vector3.new(0, -1, 0))).LookVector * 4), Character) then
+Idle = false
+Walking = true
+Running = false
+if Enraged then
+PlayAnim(Character, Animations.EnragedWalk, 0, 1)
+else
+PlayAnim(Character, Animations.Walk, 0, 1)
+end
+end
+if Shift == true then
+Humanoid.WalkSpeed = 24
+else
+Humanoid.WalkSpeed = 13	
+end
+end
+
+local function ToggleRage()
+if Debounce then return end
+Enraged = not Enraged
+Debounce = true
+if Enraged then
+PlaySound("PursuerRage.ogg", 1)
+PlayAnim(Character, Animations.EnragedStart, 0, 1)
+task.wait(0.15)
+task.wait(1)
+Debounce = false
+if RootPart.Velocity.Magnitude < 1 and workspace:FindPartOnRay(Ray.new(RootPart.Position, (CFrame.new(RootPart.Position, RootPart.Position + Vector3.new(0, -1, 0))).LookVector * 4), Character) then
+Idle = true
+Walking = false
+Running = false
+PlayAnim(Character, Animations.EnragedIdle, 0, 1)
+elseif RootPart.Velocity.Magnitude > 1 and workspace:FindPartOnRay(Ray.new(RootPart.Position, (CFrame.new(RootPart.Position, RootPart.Position + Vector3.new(0, -1, 0))).LookVector * 4), Character) then
+Idle = false
+Walking = true
+Running = false
+PlayAnim(Character, Animations.EnragedWalk, 0, 1)
+end	
+else
+Debounce = false
+if RootPart.Velocity.Magnitude < 1 and workspace:FindPartOnRay(Ray.new(RootPart.Position, (CFrame.new(RootPart.Position, RootPart.Position + Vector3.new(0, -1, 0))).LookVector * 4), Character) then
+Idle = true
+Walking = false
+Running = false
+PlayAnim(Character, Animations.Idle, 0, 1)
+elseif RootPart.Velocity.Magnitude > 1 and workspace:FindPartOnRay(Ray.new(RootPart.Position, (CFrame.new(RootPart.Position, RootPart.Position + Vector3.new(0, -1, 0))).LookVector * 4), Character) then
+Idle = false
+Walking = true
+Running = false
+PlayAnim(Character, Animations.Walk, 0, 1)
+end	
+end
+if Shift == true then
+Humanoid.WalkSpeed = 24
+else
+Humanoid.WalkSpeed = 13	
+end
+end
+
+local function Execute()
+if Debounce then return end
+Debounce = true
+Humanoid.AutoRotate = false
+local NPC = Dummy:Clone()
+NPC.Parent = workspace
+local NPCRootPart = NPC:FindFirstChild("HumanoidRootPart")
+NPCRootPart.Anchored = true
+RootPart.Anchored = true
+NPCRootPart.CFrame = CFrame.lookAt(RootPart.Position + (RootPart.CFrame.LookVector * 2.5), RootPart.Position) * CFrame.new(0, 0, -3) * CFrame.Angles(0, math.rad(180), 0)
+PlayAnim(Character, Animations.Execution_KillerRig, 0, 2)
+PlayAnim(NPC, Animations.Execution_PlayerRig, 0, 2)
+DummyWeld.Part0 = NPC:FindFirstChild("Torso")
+DummyWeld.Part1 = ReanimateDummy
+DummyWeld.C0 = CFrame.new(0, 0, 0)
+task.wait(1.15)
+NPC:Destroy()
+DummyWeld.Part0 = RootPart
+DummyWeld.Part1 = ReanimateDummy
+DummyWeld.C0 = CFrame.new(0, -15, 0)
+RootPart.Anchored = false
+Debounce = false
+Humanoid.AutoRotate = true
+if RootPart.Velocity.Magnitude < 1 and workspace:FindPartOnRay(Ray.new(RootPart.Position, (CFrame.new(RootPart.Position, RootPart.Position + Vector3.new(0, -1, 0))).LookVector * 4), Character) then
+Idle = true
+Walking = false
+Running = false
+if Enraged then
+PlayAnim(Character, Animations.EnragedIdle, 0, 1)
+else
+PlayAnim(Character, Animations.Idle, 0, 1)
+end
+elseif RootPart.Velocity.Magnitude > 1 and workspace:FindPartOnRay(Ray.new(RootPart.Position, (CFrame.new(RootPart.Position, RootPart.Position + Vector3.new(0, -1, 0))).LookVector * 4), Character) then
+Idle = false
+Walking = true
+Running = false
+if Enraged then
+PlayAnim(Character, Animations.EnragedWalk, 0, 1)
+else
+PlayAnim(Character, Animations.Walk, 0, 1)
+end
+end
+if Shift == true then
+Humanoid.WalkSpeed = 24
+else
+Humanoid.WalkSpeed = 13	
+end
+end
+
+local function Stun()
+if Debounce then return end
+Debounce = true
+RootPart.Anchored = true
+PlaySound("PursuerStun.ogg", 1)
+PlayAnim(Character, Animations.Stunned_Start, 0, 1)
+task.wait(0.65)
+PlayAnim(Character, Animations.Stunned_Loop, 0, 1)        
+task.wait(0.65)
+PlayAnim(Character, Animations.Stunned_End, 0, 1)
+task.wait(0.65)
+RootPart.Anchored = false
+Debounce = false
+if Shift == true then
+Humanoid.WalkSpeed = 24
+else
+Humanoid.WalkSpeed = 13	
+end
+if RootPart.Velocity.Magnitude < 1 and workspace:FindPartOnRay(Ray.new(RootPart.Position, (CFrame.new(RootPart.Position, RootPart.Position + Vector3.new(0, -1, 0))).LookVector * 4), Character) then
+Idle = true
+Walking = false
+Running = false
+if Enraged then
+PlayAnim(Character, Animations.EnragedIdle, 0, 1)
+else
+PlayAnim(Character, Animations.Idle, 0, 1)
+end
+elseif RootPart.Velocity.Magnitude > 1 and workspace:FindPartOnRay(Ray.new(RootPart.Position, (CFrame.new(RootPart.Position, RootPart.Position + Vector3.new(0, -1, 0))).LookVector * 4), Character) then
+Idle = false
+Walking = true
+Running = false
+if Enraged then
+PlayAnim(Character, Animations.EnragedWalk, 0, 1)
+else
+PlayAnim(Character, Animations.Walk, 0, 1)
+end
+end 
+end
+
+local ShitlockController = Player.PlayerScripts:WaitForChild("PlayerModule"):WaitForChild("CameraModule"):WaitForChild("MouseLockController")
+ShitlockController:FindFirstChild("BoundKeys").Value = "LeftControl, RightControl"
+
+UserInputService.InputBegan:Connect(function(Key, GPE)
+if GPE then return end
+if Key.UserInputType == Enum.UserInputType.MouseButton1 then
+Slash()
+end
+if Key.KeyCode == Enum.KeyCode.Q then
+Behead()
+end
+if Key.KeyCode == Enum.KeyCode.E then
+Gash()
+end 
+if Key.KeyCode == Enum.KeyCode.R then
+ToggleRage()
+end
+if Key.KeyCode == Enum.KeyCode.One then
+Stun()
+end
+if Key.KeyCode == Enum.KeyCode.Z then
+Execute()
+end
+if Key.KeyCode == Enum.KeyCode.LeftShift or Key.KeyCode == Enum.KeyCode.RightShift then
+Shift = true
+Humanoid.WalkSpeed = 24
+end
+end)
+
+UserInputService.InputEnded:Connect(function(Key)
+if Key.KeyCode == Enum.KeyCode.LeftShift or Key.KeyCode == Enum.KeyCode.RightShift then
+Shift = false
+Humanoid.WalkSpeed = 13
+end
+end)
+
+AbilityContainer.Slash.MouseButton1Down:Connect(function()
+Slash()
+end)
+
+AbilityContainer.Behead.MouseButton1Down:Connect(function()
+Behead()
+end)
+
+AbilityContainer.RagingPace.MouseButton1Down:Connect(function()
+ToggleRage()
+end)
+
+AbilityContainer.GashingWound.MouseButton1Down:Connect(function()
+Gash()
+end)
+
+Machete.Touched:Connect(function(Hit)
+if not CanSlash then return end
+if Hit:IsDescendantOf(Character) then return end
+local Target = Hit.Parent
+local TargetHumanoid = Target:FindFirstChildOfClass("Humanoid")
+if TargetHumanoid then
+Empyrean.Fling(Hit, DefaultFlingOptions)
+end
+end)
+
+game:GetService("RunService").Heartbeat:Connect(function()
+Humanoid.CameraOffset = Humanoid.CameraOffset:Lerp((RootPart.CFrame * CFrame.new(0, 1.5, 0)):PointToObjectSpace(Head.Position),  math.clamp(8 * 60 * 60, 0, 1))
+for i,v in ipairs(Character:FindFirstChildOfClass("Humanoid"):GetPlayingAnimationTracks()) do
+v:Stop(0)
+end
+if Debounce then
+StopAnim(Character,Animations.Idle)
+StopAnim(Character,Animations.Walk)
+StopAnim(Character,Animations.Sprinting)
+end
+local HitFloor, HitPosition = workspace:FindPartOnRay(Ray.new(RootPart.Position, (CFrame.new(RootPart.Position, RootPart.Position + Vector3.new(0, -1, 0))).LookVector * 4), Character)
+local TorsoVelocity = (RootPart.Velocity).Magnitude
+local TorsoVerticalVelocity = RootPart.Velocity.Y
+if TorsoVelocity < 1 and HitFloor ~= nil and Debounce == false then
+if Idle == false and Enraged == false then
+Idle = true
+PlayAnim(Character,Animations.Idle, 0, 1)
+elseif Idle == false and Enraged == true then
+Idle = true
+PlayAnim(Character,Animations.EnragedIdle, 0, 1)
+end
+Walking = false
+Running = false
+StopAnim(Character,Animations.Sprinting)
+StopAnim(Character,Animations.Walk)
+elseif TorsoVelocity > 1 and HitFloor ~= nil and Debounce == false and Shift == true then
+if Running == false and Enraged == false then
+Running = true
+PlayAnim(Character,Animations.Sprinting, 0, 2)
+elseif Running == false and Enraged == true then
+Running = true
+PlayAnim(Character,Animations.EnragedRun, 0, 2)
+end
+Idle = false
+Walking = false
+StopAnim(Character,Animations.Walk)
+StopAnim(Character,Animations.Idle)
+elseif TorsoVelocity > 1 and HitFloor ~= nil and Debounce == false then
+if Walking == false and Enraged == false then
+Walking = true
+PlayAnim(Character, Animations.Walk, 0, 1)
+elseif Walking == false and Enraged == true then
+Walking = true
+PlayAnim(Character,Animations.EnragedWalk, 0, 1)
+end
+Idle = false
+Running = false
+StopAnim(Character,Animations.Sprinting)
+StopAnim(Character,Animations.Idle)
+end
+end)
