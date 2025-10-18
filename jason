@@ -96,10 +96,10 @@ local Humanoid = Character:FindFirstChildOfClass("Humanoid")
 local RootPart = Character:FindFirstChild("HumanoidRootPart")
 local Machete = script.Weapons:WaitForChild("Machete"):Clone()
 Machete.Parent = Character
-Machete.Transparency = 0.95
+Machete.Transparency = 0
 local Chainsaw = script.Weapons:WaitForChild("Chainsaw"):Clone()
 Chainsaw.Parent = Character
-Chainsaw.Transparency = 0.95
+Chainsaw.Transparency = 0
 Character:FindFirstChild("Animate"):Destroy()
 Humanoid:FindFirstChild("Animator"):Destroy()
 Character:FindFirstChildOfClass("Humanoid").WalkSpeed = 7
